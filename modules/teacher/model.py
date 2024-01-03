@@ -1,6 +1,10 @@
 from pydantic import BaseModel
 
 class Teacher(BaseModel):
-    id: int
     name: str
+    specialist: str
     email: str
+    password: int
+
+    class Config:
+        orm_mode = True
