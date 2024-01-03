@@ -1,10 +1,9 @@
 from fastapi import APIRouter, HTTPException, status
-from typing import List
+from typing import List, Dict, Any
 from .model import Teacher
 from database.database import teacher_db
 from database.response import ResponseModel
 from bson import ObjectId
-from typing import List, Dict, Any
 
 router = APIRouter(
     prefix="/teachers",
@@ -30,10 +29,10 @@ router = APIRouter(
 def get_teachers():
     try:
         # Retrieve data from the database, ensuring the correct field names
-        list_teachers = list(teacher_db.find({}, {"_id": 1, "name": 1, "email": 1}))
+        list_teachers = list(teacher_db.find({}, {"_id": 1, "name": 1, "email": 1, "specialist":1}))
 
         # Transform the data to match the response model
-        formatted_teachers = [{"id": str(teacher["_id"]), "name": teacher.get("name", "N/A"), "email": teacher.get("email", "N/A")} for teacher in list_teachers]
+        formatted_teachers = [{"id": str(teacher["_id"]), "name": teacher.get("name", "N/A"), "email": teacher.get("email", "N/A"), "specialist":teacher.get("specialist", "N/A")} for teacher in list_teachers]
 
         return {
             "data": formatted_teachers

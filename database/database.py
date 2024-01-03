@@ -6,3 +6,4 @@ client = MongoClient(url)
 db = client.school_management
 student_db = db.student
 teacher_db = db.teacher
+course_db=db.course

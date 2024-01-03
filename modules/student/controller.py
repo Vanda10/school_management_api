@@ -1,79 +1,82 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, status
 from typing import List
-from .model import Student
 from database.database import student_db
-import json
+from database.response import ResponseModel
 from bson import ObjectId
+from .model import Student
 
 router = APIRouter(
     prefix="/students",
     tags=["Students"],
 )
 
-# Sample data file path
-data_file = "module/student/student_data.json"
-
-# Read data from file
-def read_data():
-    with open(data_file, "r") as file:
-        return json.load(file)
-
-# Write data to file
-def write_data(data):
-    with open(data_file, "w") as file:
-        json.dump(data, file, indent=4)
-
-# Get all students
+# Get all students with specific fields
 @router.get("/")
 def get_students():
     try:
-        list_student = list(student_db.find())
-        for student in list_student:
-            if isinstance(student.get('_id'), ObjectId):
-                student['id'] = str(student.pop('_id'))
+        # Retrieve data from the database, ensuring the correct field names
+        list_students = list(student_db.find({}, {"_id": 1, "name": 1, "email": 1, "major": 1}))
+
+        # Transform the data to match the response model
+        formatted_students = [{"id": str(student["_id"]), "name": student.get("name", "N/A"), "email": student.get("email", "N/A"), "major": student.get("major", "N/A")} for student in list_students]
+
         return {
-            "data": list_student
+            "data": formatted_students
         }
-    except ValueError as e:
-       raise HTTPException(status_code=500, detail=e)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Get student by ID
-@router.get("/{student_id}", response_model=Student)
-def get_student(student_id: int):
-    data = read_data()
-    for student in data:
-        if student["id"] == student_id:
+@router.get("/{student_id}")
+def get_student(student_id: str):
+    try:
+        if not ObjectId.is_valid(student_id):
+            raise HTTPException(status_code=400, detail="Invalid student ID format")
+        
+        student = student_db.find_one({"_id": ObjectId(student_id)})
+        if student:
+            student['id'] = str(student.pop('_id'))
             return student
-    raise HTTPException(status_code=404, detail="Student not found")
+        raise HTTPException(status_code=404, detail="Student not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Create new student
-@router.post("/", response_model=Student)
+@router.post("/")
 def create_student(student: Student):
-    data = read_data()
-    new_student = student.dict()
-    new_student["id"] = len(data) + 1
-    data.append(new_student)
-    write_data(data)
-    return new_student
+    try:
+        new_student = student.dict()
+        # Remove the 'id' field if it exists in the request body
+        if 'id' in new_student:
+            del new_student['id']
+        # Insert the new student into the database
+        student_id = student_db.insert_one(new_student).inserted_id
+        new_student['id'] = str(student_id)
+
+        print("Add successfully")
+        return {"data": f"Student with ID {new_student['id']} added successfully"}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Update student by ID
-@router.put("/{student_id}", response_model=Student)
-def update_student(student_id: int, student: Student):
-    data = read_data()
-    for s in data:
-        if s["id"] == student_id:
-            s.update(student.dict())
-            write_data(data)
-            return s
+@router.put("/{student_id}")
+def update_student(student_id: str, student: Student):
+    updated_student = student.dict()
+    if 'id' in updated_student:
+        del updated_student['id']  # Ensure no 'id' is provided in the request body
+    result = student_db.update_one({"_id": ObjectId(student_id)}, {"$set": updated_student})
+    if result.modified_count == 1:
+        updated_student['id'] = student_id
+        return {"data": f"Student with ID {updated_student['id']} updated successfully"}
     raise HTTPException(status_code=404, detail="Student not found")
 
 # Delete student by ID
-@router.delete("/{student_id}", response_model=Student)
-def delete_student(student_id: int):
-    data = read_data()
-    for index, s in enumerate(data):
-        if s["id"] == student_id:
-            del data[index]
-            write_data(data)
-            return s
+@router.delete("/{student_id}")
+def delete_student(student_id: str):
+    student = student_db.find_one_and_delete({"_id": ObjectId(student_id)})
+    if student:
+        student['id'] = str(student.pop('_id'))
+        print("Delete successful")
+        return {"data": f"Student with ID {student_id} deleted successfully"}
     raise HTTPException(status_code=404, detail="Student not found")
