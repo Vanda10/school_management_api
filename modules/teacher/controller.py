@@ -1,7 +1,8 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, status
 from typing import List
 from .model import Teacher
 from database.database import teacher_db
+from database.response import ResponseModel
 from bson import ObjectId
 
 router = APIRouter(
@@ -24,12 +25,12 @@ def get_teachers():
         raise HTTPException(status_code=500, detail=str(e))
 
 # Get teacher by ID
-@router.get("/{teacher_id}", response_model=Teacher)
+@router.get("/{teacher_id}")
 def get_teacher(teacher_id: str):
     try:
         if not ObjectId.is_valid(teacher_id):
             raise HTTPException(status_code=400, detail="Invalid teacher ID format")
-
+        
         teacher = teacher_db.find_one({"_id": ObjectId(teacher_id)})
         if teacher:
             teacher['id'] = str(teacher.pop('_id'))
@@ -39,7 +40,7 @@ def get_teacher(teacher_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 # Create new teacher
-@router.post("/{teacer_id}", response_model=Teacher)
+@router.post("/{teacer_id}")
 def create_teacher(teacher: Teacher):
     new_teacher = teacher.dict()
     del new_teacher['id']  # Ensure no 'id' is provided in the request body
