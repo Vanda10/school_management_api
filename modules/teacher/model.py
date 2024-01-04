@@ -4,7 +4,7 @@ class Teacher(BaseModel):
     name: str
     specialist: str
     email: str
-    password: int
+    password: str
 
     class Config:
         orm_mode = True

@@ -46,11 +46,13 @@ def get_student(student_id: str):
 def create_student(student: Student):
     try:
         new_student = student.dict()
+        supbase_id = new_student.pop("id")
         # Remove the 'id' field if it exists in the request body
         if 'id' in new_student:
             del new_student['id']
         # Insert the new student into the database
         student_id = student_db.insert_one(new_student).inserted_id
+        student_db.update_one({"_id": ObjectId(supbase_id)})
         new_student['id'] = str(student_id)
 
         print("Add successfully")
