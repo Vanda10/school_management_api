@@ -12,14 +12,12 @@ router = APIRouter(
 @router.get("/")
 def get_courses():
     try:
-        # Retrieve data from the database, ensuring the correct field names
-        list_courses = list(course_db.find({}, {"_id": 1, "name": 1, "description": 1, "teacher": 1}))
-
-        # Transform the data to match the response model
-        formatted_courses = [{"id": str(course["_id"]), "name": course.get("name", "N/A"), "description": course.get("description", "N/A"), "teacher": course.get("teacher", "N/A")} for course in list_courses]
-
+        list_courses = list(course_db.find())
+        for course in list_courses:
+            if isinstance(course.get('_id'), ObjectId):
+                course['id'] = str(course.pop('_id'))
         return {
-            "data": formatted_courses
+            "data": list_courses
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

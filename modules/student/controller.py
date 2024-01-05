@@ -1,9 +1,9 @@
-from fastapi import APIRouter, HTTPException, status
+# student_router.py
+from fastapi import APIRouter, HTTPException
 from typing import List
-from database.database import student_db
-from database.response import ResponseModel
-from bson import ObjectId
 from .model import Student
+from database.database import student_db  # Assuming you have a separate database module for students
+from bson import ObjectId
 
 router = APIRouter(
     prefix="/students",
@@ -14,14 +14,12 @@ router = APIRouter(
 @router.get("/")
 def get_students():
     try:
-        # Retrieve data from the database, ensuring the correct field names
-        list_students = list(student_db.find({}, {"_id": 1, "name": 1, "email": 1, "major": 1}))
-
-        # Transform the data to match the response model
-        formatted_students = [{"id": str(student["_id"]), "name": student.get("name", "N/A"), "email": student.get("email", "N/A"), "major": student.get("major", "N/A")} for student in list_students]
-
+        list_students = list(student_db.find())
+        for student in list_students:
+            if isinstance(student.get('_id'), ObjectId):
+                student['id'] = str(student.pop('_id'))
         return {
-            "data": formatted_students
+            "data": list_students
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -46,13 +44,11 @@ def get_student(student_id: str):
 def create_student(student: Student):
     try:
         new_student = student.dict()
-        supbase_id = new_student.pop("id")
         # Remove the 'id' field if it exists in the request body
         if 'id' in new_student:
             del new_student['id']
         # Insert the new student into the database
         student_id = student_db.insert_one(new_student).inserted_id
-        student_db.update_one({"_id": ObjectId(supbase_id)})
         new_student['id'] = str(student_id)
 
         print("Add successfully")
