@@ -5,6 +5,8 @@ from modules.login.controller import router as loginRouter
 from modules.teacher.controller import router as TeacherRouter
 from modules.student.controller import router as StudentRouter
 from modules.course.controller import router as CourseRouter
+from modules.classes.controller import router as ClassRouter
+from modules.class_schedule.controller import router as schedule
 from fastapi.middleware.cors import CORSMiddleware
 from pymongo import MongoClient
 
@@ -23,6 +25,8 @@ app.include_router(loginRouter)
 app.include_router(TeacherRouter)
 app.include_router(StudentRouter)
 app.include_router(CourseRouter)
+app.include_router(ClassRouter)
+app.include_router(schedule)
 
 if __name__ == "__main__":
     uvicorn.run(app=app)
