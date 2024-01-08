@@ -9,3 +9,4 @@ teacher_db = db.teacher
 course_db = db.course
 classes_db = db.classes
 schedule_db = db.class_schedule
+admin_db = db.admin
