@@ -66,6 +66,7 @@ async def login(username: str, password: str, role: str):
         return {"message": "Login successful"}
     else:
         raise HTTPException(status_code=401, detail="Invalid credentials")
+    
 app.include_router(TeacherRouter)
 app.include_router(StudentRouter)
 app.include_router(CourseRouter)
