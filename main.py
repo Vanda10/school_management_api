@@ -11,6 +11,8 @@ from modules.student.controller import router as StudentRouter
 from modules.course.controller import router as CourseRouter
 from modules.classes.controller import router as ClassRouter
 from modules.class_schedule.controller import router as schedule
+from modules.department.controller import router as DepartmentRouter
+from modules.teachercourse.controller import router as TeacherCourseRouter
 from database.database import admin_db, student_db, teacher_db, url
 
 app = FastAPI(docs_url='/')
@@ -70,6 +72,8 @@ app.include_router(CourseRouter)
 app.include_router(ClassRouter)
 app.include_router(schedule)
 app.include_router(loginRouter)
+app.include_router(DepartmentRouter)
+app.include_router(TeacherCourseRouter)
 
 if __name__ == "__main__":
     uvicorn.run(app=app)

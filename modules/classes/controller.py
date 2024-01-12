@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Path
 from database.database import classes_db
 from bson import ObjectId
 from modules.classes.model import Class  # Change the import to use Class instead of Course
@@ -75,3 +75,31 @@ def delete_class(class_id: str):  # Update parameter name to class_id
         print("Delete successful")
         return {"data": f"Class with ID {class_id} deleted successfully"}  # Update message to Class
     raise HTTPException(status_code=404, detail="Class not found")  # Update detail message to Class not found
+
+# Get class by group_code
+@router.get("/group/{group_code}")
+def get_class_by_group_code(group_code: str = Path(..., title="The group code of the class")):
+    try:
+        class_obj = classes_db.find_one({"group_code": group_code})
+        if class_obj:
+            class_obj['id'] = str(class_obj.pop('_id'))
+            return class_obj
+        raise HTTPException(status_code=404, detail="Class not found for the given group code")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Update only semester and year of class by ID
+@router.put("/{class_id}/update-semester-year")
+def update_class_semester_year(class_id: str, semester: str, year: str):  # Update parameter names to class_id, semester, and year
+    try:
+        result = classes_db.update_one(
+            {"_id": ObjectId(class_id)},
+            {"$set": {"semester": semester, "year": year}}  # Update fields to be updated
+        )
+        if result.modified_count == 1:
+            return {"data": f"Semester and year of class with ID {class_id} updated successfully"}
+        raise HTTPException(status_code=404, detail="Class not found")  # Update detail message to Class not found
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+

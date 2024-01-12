@@ -28,14 +28,12 @@ router = APIRouter(
 @router.get("/")
 def get_teachers():
     try:
-        # Retrieve data from the database, ensuring the correct field names
-        list_teachers = list(teacher_db.find({}, {"_id": 1, "name": 1, "email": 1, "specialist":1}))
-
-        # Transform the data to match the response model
-        formatted_teachers = [{"id": str(teacher["_id"]), "name": teacher.get("name", "N/A"), "email": teacher.get("email", "N/A"), "specialist":teacher.get("specialist", "N/A")} for teacher in list_teachers]
-
+        list_teachers = list(teacher_db.find())
+        for teacher in list_teachers:
+            if isinstance(teacher.get('_id'), ObjectId):
+                teacher['id'] = str(teacher.pop('_id'))
         return {
-            "data": formatted_teachers
+            "data": list_teachers
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -75,7 +73,7 @@ def create_teacher(teacher: Teacher):
 
 
 # Update teacher by ID
-@router.put("/{teacher_id}")
+@router.put("/{teacherid}")
 def update_teacher(teacher_id: str, teacher: Teacher):
     updated_teacher = teacher.dict()
     if 'id' in updated_teacher:
@@ -88,7 +86,7 @@ def update_teacher(teacher_id: str, teacher: Teacher):
 
 
 # Delete teacher by ID
-@router.delete("/{teacher_id}")
+@router.delete("/{teacher_d}")
 def delete_teacher(teacher_id: str):
     teacher = teacher_db.find_one_and_delete({"_id": ObjectId(teacher_id)})
     if teacher:

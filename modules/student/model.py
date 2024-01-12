@@ -7,10 +7,8 @@ class Student(BaseModel):
     dob: str
     phone_number: str
     email: str
-    password: str
     department_id: str
-    class_id: str
-    year: str
+    group_code: str
 
     class Config:
         orm_mode = True

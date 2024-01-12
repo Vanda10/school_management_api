@@ -1,8 +1,11 @@
 from pydantic import BaseModel
 
 class Course(BaseModel):
-    courseid: str
+    department_id: str
     coursename: str
+    semester: str
+    year: str
 
     class Config:
         orm_mode = True
+

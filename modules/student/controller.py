@@ -78,3 +78,18 @@ def delete_student(student_id: str):
         print("Delete successful")
         return {"data": f"Student with ID {student_id} deleted successfully"}
     raise HTTPException(status_code=404, detail="Student not found")
+
+# Get students by group_code
+@router.get("/by_group/{group_code}")
+def get_students_by_group(group_code: str):
+    try:
+        # Assuming 'group_code' is a field in your student documents
+        students_by_group = list(student_db.find({"group_code": group_code}))
+        for student in students_by_group:
+            if isinstance(student.get('_id'), ObjectId):
+                student['id'] = str(student.pop('_id'))
+        return {
+            "data": students_by_group
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

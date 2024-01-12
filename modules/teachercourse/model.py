@@ -1,10 +1,9 @@
 from pydantic import BaseModel
 
-class Class(BaseModel):
+class TeacherCourse(BaseModel):
+    teacher_id: str
     group_code: str
-    department_id: str
-    semester: str
-    year: str
-
+    coursename: str
+    
     class Config:
         orm_mode = True
